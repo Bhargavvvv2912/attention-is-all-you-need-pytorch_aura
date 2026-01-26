@@ -1,0 +1,55 @@
+name: AURA Experiment - Attention Is All You Need (Repo 11)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-transformer:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10' 
+
+      - name: 🛠️ Setup Agent Deps
+        run: pip install google-genai google-api-core pypi-simple packaging pip-tools
+
+      - name: 🧪 1. Run Pip Baseline
+        run: |
+          python -m venv baseline_env
+          source baseline_env/bin/activate
+          pip install -r requirements.txt
+          python validation_transformer.py
+          deactivate
+
+      - name: 💥 2. Run Pip Upgrade
+        continue-on-error: true
+        run: |
+          python -m venv upgrade_env
+          source upgrade_env/bin/activate
+          # The 'Attack': Pip will grab torchtext 0.18+ which deletes the classes
+          pip install --upgrade -r primary_requirements.txt
+          python validation_transformer.py
+          deactivate
+
+      - name: 🤖 3. Run AURA Agent
+        run: python -u dependency_agent.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Commit Results
+        run: |
+          git config --global user.name 'AURA Agent'
+          git config --global user.email 'aura-agent@users.noreply.github.com'
+          git add requirements.txt
+          if ! git diff --staged --quiet; then
+            git commit -m "chore(deps): Modernized Transformer logic [skip ci]"
+            git push
+          fi

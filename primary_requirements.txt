@@ -1,0 +1,8 @@
+torch
+torchtext
+spacy
+numpy
+msgpack-python
+msgpack-numpy
+tqdm
+dill
