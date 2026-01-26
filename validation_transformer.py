@@ -1,35 +1,30 @@
 import sys
 import torch
+import torchtext
 
-def test_transformer_dependencies():
-    print("--- Starting Annotated Transformer Verification ---")
+def test_transformer_310():
+    print("--- Starting Annotated Transformer Verification (Py3.10) ---")
     try:
-        print("--> Checking torchtext version...")
-        import torchtext
-        print(f"    [Version]: {torchtext.__version__}")
+        print(f"--> Torchtext Version: {torchtext.__version__}")
+        
+        # Test Data Structures (Post-Legacy migration)
+        print("--> Verifying torchtext vocab structures...")
+        from torchtext.vocab import vocab
+        from collections import Counter, OrderedDict
+        
+        # Simple functional test of the 0.12+ API
+        c = Counter(['hello', 'world'])
+        sorted_by_freq_tuples = sorted(c.items(), key=lambda x: x[1], reverse=True)
+        ordered_dict = OrderedDict(sorted_by_freq_tuples)
+        v = vocab(ordered_dict)
+        print(f"    [✓] Vocab initialized with {len(v)} tokens.")
 
-        # The 'Legacy API' Trap
-        print("--> Verifying Field API availability...")
-        try:
-            # First try the 0.9.0 - 0.11.0 location
-            from torchtext.legacy import data as legacy_data
-            field = legacy_data.Field(lower=True)
-            print("    [✓] Field found in torchtext.legacy")
-        except ImportError:
-            try:
-                # Then try the < 0.9.0 location
-                from torchtext import data as original_data
-                field = original_data.Field(lower=True)
-                print("    [✓] Field found in torchtext.data")
-            except (ImportError, AttributeError):
-                print("    [!] ERROR: Field API is physically missing from this version.")
-                raise ImportError("Incompatible torchtext version.")
-
-        # 3. Test Tensor Ops
-        print("--> Verifying tensor operations...")
-        x = torch.randn(1, 10, 512)
-        attn = torch.matmul(x, x.transpose(-1, -2))
-        print(f"    [✓] Attention matrix verified: {attn.shape}")
+        # Test Tensor Operations (The core math)
+        print("--> Verifying attention matrix math...")
+        q = torch.randn(1, 8, 10, 64)
+        k = torch.randn(1, 8, 10, 64)
+        attn = torch.matmul(q, k.transpose(-2, -1))
+        print(f"    [✓] Tensor attention verified: {attn.shape}")
         
         print("--- SMOKE TEST PASSED ---")
 
@@ -38,4 +33,4 @@ def test_transformer_dependencies():
         sys.exit(1)
 
 if __name__ == "__main__":
-    test_transformer_dependencies()
+    test_transformer_310()
