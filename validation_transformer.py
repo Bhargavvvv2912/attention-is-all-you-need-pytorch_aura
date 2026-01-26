@@ -1,21 +1,20 @@
 import sys
 import torch
 import torchtext
+from collections import Counter, OrderedDict
 
 def test_transformer_310():
     print("--- Starting Annotated Transformer Verification (Py3.10) ---")
     try:
         print(f"--> Torchtext Version: {torchtext.__version__}")
         
-        # Test Data Structures (Post-Legacy migration)
+        # Test Data Structures (0.13.0 API)
         print("--> Verifying torchtext vocab structures...")
         from torchtext.vocab import vocab
-        from collections import Counter, OrderedDict
         
-        # Simple functional test of the 0.12+ API
-        c = Counter(['hello', 'world'])
-        sorted_by_freq_tuples = sorted(c.items(), key=lambda x: x[1], reverse=True)
-        ordered_dict = OrderedDict(sorted_by_freq_tuples)
+        # Simple functional test
+        c = Counter(['attention', 'is', 'all', 'you', 'need'])
+        ordered_dict = OrderedDict(sorted(c.items(), key=lambda x: x[1], reverse=True))
         v = vocab(ordered_dict)
         print(f"    [✓] Vocab initialized with {len(v)} tokens.")
 
@@ -24,8 +23,12 @@ def test_transformer_310():
         q = torch.randn(1, 8, 10, 64)
         k = torch.randn(1, 8, 10, 64)
         attn = torch.matmul(q, k.transpose(-2, -1))
-        print(f"    [✓] Tensor attention verified: {attn.shape}")
         
+        # Check for NaN/Inf (Numerical stability)
+        if not torch.isfinite(attn).all():
+            raise ValueError("Attention weights are not finite!")
+            
+        print(f"    [✓] Tensor attention verified: {attn.shape}")
         print("--- SMOKE TEST PASSED ---")
 
     except Exception as e:
