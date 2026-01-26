@@ -25,7 +25,7 @@ class GeminiClientWrapper:
 
 AGENT_CONFIG = {
     "PROJECT_NAME": "sbl3",
-    "IS_INSTALLABLE_PACKAGE": True, 
+    "IS_INSTALLABLE_PACKAGE": False, 
     "REQUIREMENTS_FILE": "requirements.txt",
     "METRICS_OUTPUT_FILE": "metrics_output.txt",
     "PRIMARY_REQUIREMENTS_FILE": "primary_requirements.txt",
