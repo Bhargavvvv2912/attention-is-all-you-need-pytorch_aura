@@ -1,8 +1,6 @@
 torch
 torchtext
-spacy
 numpy
-msgpack-python
-msgpack-numpy
+spacy
 tqdm
 dill
