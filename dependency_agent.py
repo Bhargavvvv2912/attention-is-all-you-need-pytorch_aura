@@ -31,7 +31,7 @@ AGENT_CONFIG = {
     "PRIMARY_REQUIREMENTS_FILE": "primary_requirements.txt",
     "VALIDATION_CONFIG": {
         "type": "script",
-        "smoke_test_script": "validation_sbl3.py",
+        "smoke_test_script": "validation_transformer.py",
         "project_dir": "." 
     },
     "MAX_RUN_PASSES": 3,
