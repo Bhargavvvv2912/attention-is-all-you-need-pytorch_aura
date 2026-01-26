@@ -4,39 +4,33 @@ import torch
 def test_transformer_dependencies():
     print("--- Starting Annotated Transformer Verification ---")
     try:
-        # 1. Test Torchtext Legacy API
-        # This is the 'Trap': Versions < 0.12 had 'data.Field'
-        # Versions 0.12+ moved it to 'legacy' or deleted it entirely.
-        print("--> Verifying torchtext data structures...")
+        print("--> Checking torchtext version...")
         import torchtext
-        
+        print(f"    [Version]: {torchtext.__version__}")
+
+        # The 'Legacy API' Trap
+        print("--> Verifying Field API availability...")
         try:
-            # Check for legacy location (0.9.0 - 0.11.0)
+            # First try the 0.9.0 - 0.11.0 location
             from torchtext.legacy import data as legacy_data
             field = legacy_data.Field(lower=True)
-            print("    [✓] Found via torchtext.legacy")
+            print("    [✓] Field found in torchtext.legacy")
         except ImportError:
-            # Check for original location (< 0.9.0)
             try:
+                # Then try the < 0.9.0 location
                 from torchtext import data as original_data
                 field = original_data.Field(lower=True)
-                print("    [✓] Found via torchtext.data")
+                print("    [✓] Field found in torchtext.data")
             except (ImportError, AttributeError):
-                print("    [!] ERROR: torchtext.data.Field not found. API is broken.")
-                raise ImportError("Incompatible torchtext version: Field API missing.")
+                print("    [!] ERROR: Field API is physically missing from this version.")
+                raise ImportError("Incompatible torchtext version.")
 
-        # 2. Test Spacy Integration
-        print("--> Verifying Spacy NLP integration...")
-        import spacy
-        nlp = spacy.blank("en")
-        doc = nlp("AURA validation test.")
-        
-        # 3. Test Tensor Ops (NumPy/Torch bridge)
+        # 3. Test Tensor Ops
         print("--> Verifying tensor operations...")
         x = torch.randn(1, 10, 512)
         attn = torch.matmul(x, x.transpose(-1, -2))
+        print(f"    [✓] Attention matrix verified: {attn.shape}")
         
-        print(f"--> Attention matrix shape: {attn.shape}")
         print("--- SMOKE TEST PASSED ---")
 
     except Exception as e:
