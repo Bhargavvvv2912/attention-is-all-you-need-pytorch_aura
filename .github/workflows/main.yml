@@ -39,10 +39,20 @@ jobs:
           python validation_transformer.py
           deactivate
 
-      - name: 🤖 3. Run AURA Agent
-        run: python -u dependency_agent.py
+      - name: Run Agent and Capture Logs
+        run: |
+          # -u ensures Python output is unbuffered
+          # tee writes to both the console and a file
+          python -u dependency_agent.py | tee aura_execution.log
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Upload Logs as Artifact
+        if: always() # This ensures the upload runs even if the job times out or fails
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-execution-logs
+          path: aura_execution.log
 
       - name: Commit Results
         run: |
