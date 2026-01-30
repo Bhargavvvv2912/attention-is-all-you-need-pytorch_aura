@@ -21,31 +21,30 @@ jobs:
       - name: 🛠️ Setup Agent Deps
         run: pip install google-genai google-api-core pypi-simple packaging pip-tools
 
-      - name: 🧪 1. Run Pip Baseline
+      - name: 🧪 1. Run Pip Baseline (2024 State)
         run: |
           python -m venv baseline_env
-          source baseline_env/bin/activate
-          pip install -r requirements.txt
-          python validation_transformer.py
-          deactivate
+          ./baseline_env/bin/pip install torch==2.1.0 packaging numpy
+          # This flag tells the setup.py "don't look for a GPU"
+          export CAUSAL_CONV1D_SKIP_CUDA_BUILD=1
+          ./baseline_env/bin/pip install -r requirements.txt
+          ./baseline_env/bin/python validation_mamba.py
 
-      - name: 💥 2. Run Pip Upgrade
+      - name: 💥 2. Run Naive Pip Upgrade (The Attack)
         continue-on-error: true
         run: |
           python -m venv upgrade_env
-          source upgrade_env/bin/activate
-          # The 'Attack': Pip will grab torchtext 0.18+ which deletes the classes
-          pip install --upgrade -r primary_requirements.txt
-          python validation_transformer.py
-          deactivate
+          ./upgrade_env/bin/pip install torch packaging numpy # Attack starts with modern Torch
+          export CAUSAL_CONV1D_SKIP_CUDA_BUILD=1
+          ./upgrade_env/bin/pip install --upgrade -r primary_requirements.txt
+          ./upgrade_env/bin/python validation_mamba.py
 
-      - name: 🤖 Run AURA Agent
+      - name: 🤖 3. Run AURA Agent
         run: |
-          # Use the -u flag in the shell command to ensure unbuffered output.
-          # Use 'tee' to save the output to a file while still printing it to the console.
+          # The agent also needs this env var set so its internal 'probes' pass
+          export CAUSAL_CONV1D_SKIP_CUDA_BUILD=1
+          pip install torch packaging numpy ninja
           python -u dependency_agent.py | tee aura_execution.log
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       - name: 📝 Save Full Execution Logs
         # This ensures the log file is uploaded even if the previous step times out.
