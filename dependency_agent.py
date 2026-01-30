@@ -24,14 +24,14 @@ class GeminiClientWrapper:
         return response
 
 AGENT_CONFIG = {
-    "PROJECT_NAME": "sbl3",
-    "IS_INSTALLABLE_PACKAGE": False, 
+    "PROJECT_NAME": "sbert",
+    "IS_INSTALLABLE_PACKAGE": True, 
     "REQUIREMENTS_FILE": "requirements.txt",
     "METRICS_OUTPUT_FILE": "metrics_output.txt",
     "PRIMARY_REQUIREMENTS_FILE": "primary_requirements.txt",
     "VALIDATION_CONFIG": {
         "type": "script",
-        "smoke_test_script": "validation_transformer.py",
+        "smoke_test_script": "validation_sbert.py",
         "project_dir": "." 
     },
     "MAX_RUN_PASSES": 3,
