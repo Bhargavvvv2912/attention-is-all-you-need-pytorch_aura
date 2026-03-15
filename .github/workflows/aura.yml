@@ -22,7 +22,7 @@ jobs:
         run: |
           python -m venv aura_env
           ./aura_env/bin/pip install --upgrade pip
-          ./aura_env/bin/pip install aura-dep-agent
+          ./aura_env/bin/pip install "git+https://github.com/Bhargavvvv2912/AURA.git#egg=aura-dep-agent"
 
       - name: 1. Run AURA Agent
         run: |
