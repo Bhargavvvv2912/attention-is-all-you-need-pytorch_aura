@@ -22,14 +22,14 @@ jobs:
         run: |
           python -m venv aura_env
           ./aura_env/bin/pip install --upgrade pip
-          ./aura_env/bin/pip install "git+https://${ github.actor }:${ secrets.GITHUB_TOKEN }@github.com/Bhargavvvv2912/AURA.git#egg=aura-dep-agent"
+          ./aura_env/bin/pip install aura-dep-agent
 
 
       - name: 1. Run AURA Agent
         run: |
           python -m venv --system-site-packages aura_env
           ./aura_env/bin/pip install --upgrade pip
-          ./aura_env/bin/pip install "git+https://${ github.actor }:${ secrets.GITHUB_TOKEN }@github.com/Bhargavvvv2912/AURA.git#egg=aura-dep-agent"
+          ./aura_env/bin/pip install aura-dep-agent
           ./aura_env/bin/python -u dependency_agent.py 
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
