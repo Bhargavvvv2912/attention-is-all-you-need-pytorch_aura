@@ -13,8 +13,8 @@ AGENT_CONFIG = {
     "METRICS_OUTPUT_FILE": "metrics_output.txt",
     "PRIMARY_REQUIREMENTS_FILE": "primary_requirements.txt",
     "VALIDATION_CONFIG": {
-        "type": "script",
-        "smoke_test_script": "validation_aura.py",
+        "type": "pytest",
+        "pytest_target": "validation_aura.py",
         "project_dir": "."
     },
     "MAX_RUN_PASSES": 3
