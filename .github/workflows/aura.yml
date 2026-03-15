@@ -1,0 +1,45 @@
+name: AURA Speed Run
+
+on:
+  workflow_dispatch:
+
+jobs:
+  aura-modernize:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install AURA agent
+        run: |
+          python -m venv aura_env
+          ./aura_env/bin/pip install --upgrade pip
+          ./aura_env/bin/pip install aura-dep-agent
+
+      - name: 1. Run AURA Agent
+        run: |
+          python -m venv --system-site-packages aura_env
+          ./aura_env/bin/pip install --upgrade pip
+          ./aura_env/bin/pip install aura-dep-agent
+          ./aura_env/bin/python -u dependency_agent.py 
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Final Commit
+        if: always()
+        run: |
+          git config --global user.name 'AURA Agent'
+          git config --global user.email 'aura-agent@users.noreply.github.com'
+          git add requirements.txt aura_ua_execution.log
+          if ! git diff --staged --quiet; then
+            git commit -m ": Modernized dependencies [skip ci]"
+            git push
+          fi
