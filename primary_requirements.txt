@@ -1,0 +1,6 @@
+torch
+torchtext
+numpy
+spacy
+tqdm
+dill
