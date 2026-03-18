@@ -1,117 +1,52 @@
 import sys
-import numpy as np
 
-def test_transformer_logic():
-    print("--- Starting Transformer Functional Verification ---")
+def test_tf1_transformer_compat():
+    print("--- Starting TF1 Compatibility Test (Attention Is All You Need) ---")
 
-    # Try PyTorch-based implementations first
     try:
-        import torch
-        print(f"--> PyTorch detected: {torch.__version__}")
-        backend = "torch"
+        import tensorflow as tf
+        print(f"--> Detected TensorFlow version: {tf.__version__}")
     except ImportError:
-        torch = None
-        backend = None
+        print("CRITICAL: TensorFlow not installed.")
+        sys.exit(1)
 
-    # Try TensorFlow as fallback
-    if backend is None:
-        try:
-            import tensorflow as tf
-            print(f"--> TensorFlow detected: {tf.__version__}")
-            backend = "tf"
-        except ImportError:
-            print("CRITICAL: Neither PyTorch nor TensorFlow available.")
-            sys.exit(1)
+    # -------------------------------
+    # Enforce TF1 requirement
+    # -------------------------------
+    if not tf.__version__.startswith("1."):
+        print("CRITICAL: TensorFlow 2.x detected, but this repo requires TF 1.x.")
+        sys.exit(1)
 
     try:
-        # -------------------------------
-        # CASE 1: PyTorch-style Transformer
-        # -------------------------------
-        if backend == "torch":
-            print("--> Running PyTorch Transformer test...")
+        print("--> Running TF1-style graph execution test...")
 
-            import torch.nn as nn
+        # TF1-style graph construction
+        x = tf.placeholder(tf.float32, shape=(None, 10))
+        W = tf.Variable(tf.random_normal([10, 5]))
+        b = tf.Variable(tf.zeros([5]))
+        y = tf.matmul(x, W) + b
 
-            model = nn.Transformer(
-                d_model=32,
-                nhead=4,
-                num_encoder_layers=2,
-                num_decoder_layers=2,
-                dim_feedforward=64,
-                dropout=0.1,
-            )
+        init = tf.global_variables_initializer()
 
-            src = torch.rand((10, 2, 32))  # (seq_len, batch, d_model)
-            tgt = torch.rand((5, 2, 32))
+        with tf.Session() as sess:
+            sess.run(init)
+            import numpy as np
+            dummy_input = np.random.rand(2, 10)
+            output = sess.run(y, feed_dict={x: dummy_input})
 
-            output = model(src, tgt)
-
-            if output.shape == (5, 2, 32):
-                print(f"    [✓] Output shape valid: {output.shape}")
-            else:
-                raise ValueError(f"Unexpected output shape: {output.shape}")
-
-            norm = torch.norm(output).item()
-            print(f"    [✓] Output norm: {norm:.4f}")
-            if not (0.1 < norm < 100):
-                raise ValueError("Numerical instability detected.")
-
-        # -------------------------------
-        # CASE 2: TensorFlow-style Transformer
-        # -------------------------------
-        elif backend == "tf":
-            print("--> Running TensorFlow Transformer test...")
-
-            import tensorflow as tf
-
-            # Detect TF1 vs TF2 behavior
-            if tf.__version__.startswith("1."):
-                print("    [!] TensorFlow 1.x detected (expected for legacy repo)")
-                sess = tf.Session()
-                x = tf.random_uniform([2, 10, 32])
-                y = sess.run(x)
-
-                if y.shape == (2, 10, 32):
-                    print(f"    [✓] TF1 tensor shape valid: {y.shape}")
-                else:
-                    raise ValueError("TF1 tensor shape mismatch")
-
-                sess.close()
-
-            else:
-                print("    [!] TensorFlow 2.x detected")
-
-                x = tf.random.uniform([2, 10, 32])
-                y = x.numpy()
-
-                if y.shape == (2, 10, 32):
-                    print(f"    [✓] TF2 tensor shape valid: {y.shape}")
-                else:
-                    raise ValueError("TF2 tensor shape mismatch")
-
-        # -------------------------------
-        # Generic attention sanity check
-        # -------------------------------
-        print("--> Running attention sanity check...")
-
-        def softmax(x):
-            e_x = np.exp(x - np.max(x))
-            return e_x / e_x.sum(axis=-1, keepdims=True)
-
-        Q = np.random.rand(2, 4)
-        K = np.random.rand(2, 4)
-        V = np.random.rand(2, 4)
-
-        scores = np.dot(Q, K.T) / np.sqrt(4)
-        weights = softmax(scores)
-        output = np.dot(weights, V)
-
-        if output.shape == (2, 4):
-            print("    [✓] Attention computation valid")
+        if output.shape == (2, 5):
+            print(f"    [✓] TF1 graph execution valid: {output.shape}")
         else:
-            raise ValueError("Attention computation failed")
+            raise ValueError(f"Unexpected output shape: {output.shape}")
 
-        print("--- SMOKE TEST PASSED ---")
+        print("--> Checking for deprecated modules (tf.contrib)...")
+
+        if not hasattr(tf, "contrib"):
+            raise RuntimeError("tf.contrib missing — incompatible TF version")
+
+        print("    [✓] tf.contrib available")
+
+        print("--- TF1 COMPATIBILITY TEST PASSED ---")
 
     except Exception as e:
         print(f"CRITICAL VALIDATION FAILURE: {e}")
@@ -119,4 +54,4 @@ def test_transformer_logic():
 
 
 if __name__ == "__main__":
-    test_transformer_logic()
+    test_tf1_transformer_compat()
