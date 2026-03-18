@@ -1,0 +1,24 @@
+name: Validation
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'   # whatever you use
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -r primary_requirements.txt
+      - name: Run validation
+        run: |
+          source .venv/bin/activate
+          python validation_aura.py
+          
