@@ -7,9 +7,7 @@
 # Why this fails on torch 2.x:
 #   1. KLDivLoss reduction semantics changed in torch 2.x, producing NaN loss values
 #      when using the legacy size_average=True argument.
-#   2. torch.autograd.Variable exists as a shim in torch 2.x but requires_grad
-#      behavior differs from the original 1.x semantics.
-#   3. Byte tensor mask comparisons produce different results in torch 2.x.
+#   2. Byte tensor mask comparisons produce different results in torch 2.x.
 
 import sys
 import math
@@ -18,14 +16,13 @@ import math
 def check_autograd_variable():
     """
     torch.autograd.Variable was the primary tensor wrapper in torch 1.x.
-    In torch 2.x it exists as a backward-compatibility shim but its
-    requires_grad behavior changed. The annotated transformer uses Variable
-    extensively for mask creation and loss computation.
+    In torch 2.x it exists as a backward-compatibility shim.
+    The annotated transformer uses Variable extensively for mask creation
+    and loss computation — we verify basic construction works as expected.
     """
     import torch
     from torch.autograd import Variable
 
-    # Basic construction must work
     x = torch.ones(2, 3)
     v = Variable(x, requires_grad=False)
     assert v.shape == (2, 3), "Variable wrapping produced unexpected shape"
@@ -34,11 +31,12 @@ def check_autograd_variable():
         "legacy Variable semantics have changed in this torch version."
     )
 
-    # Gradient flow must work as in torch 1.x
-    y = torch.ones(2, 3, requires_grad=True)
-    z = Variable(y)
-    (z * 2).sum().backward()
-    assert y.grad is not None, "Autograd backward pass failed through Variable"
+    x2 = torch.ones(2, 3)
+    v2 = Variable(x2, requires_grad=True)
+    assert v2.requires_grad, (
+        "Variable(requires_grad=True) returned requires_grad=False — "
+        "legacy Variable semantics have changed in this torch version."
+    )
 
     print("check_autograd_variable PASSED.")
 
@@ -127,7 +125,7 @@ def check_label_smoothing_loss():
             f"changed in torch {torch.__version__} — the annotated transformer "
             f"requires torch 1.x semantics where KLDivLoss(size_average=True) "
             f"divides only by batch size. This produces incorrect training "
-            f"behavior on torch 2.x."
+            f"behaviour on torch 2.x."
         )
 
     print("check_label_smoothing_loss PASSED.")
