@@ -3,4 +3,4 @@ torchtext==0.13.0
 numpy==1.22.0
 spacy==3.2.0
 tqdm==4.62.0
-dill==0.3.3
+dill==0.4.1
