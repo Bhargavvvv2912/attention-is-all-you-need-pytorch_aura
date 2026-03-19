@@ -4,5 +4,3 @@ numpy
 spacy
 tqdm
 dill
-tensorboard
-tensorflow
